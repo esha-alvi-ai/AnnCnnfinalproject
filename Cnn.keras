@@ -165,55 +165,5 @@ plt.show()
 
 
 
-# outputs
-
-# Training data shape: (50000, 32, 32, 3)
-# Test data shape: (10000, 32, 32, 3)
-# After preprocessing - X_train shape: (50000, 32, 32, 3), y_train shape: (50000, 10)
-
-# Testing with kernel sizes: ((3, 3), (5, 5), (7, 7))
-# Training with Adam optimizer
-# Epoch 1/10
-# ...
-# Epoch 10/10
-# Adam - Test Loss: 0.8754, Test Accuracy: 0.7504
-
-# Training with SGD optimizer
-# Epoch 1/10
-# ...
-# Epoch 10/10
-# SGD - Test Loss: 0.9231, Test Accuracy: 0.7321
-
-# Training with RMSprop optimizer
-# Epoch 1/10
-# ...
-# Epoch 10/10
-# RMSprop - Test Loss: 0.8907, Test Accuracy: 0.7458
-
-
-
-# Comparison of Optimizers and kernel sizes:
-# Optimizer: Adam, Test Loss: 0.8754, Test Accuracy: 0.7504
-# Optimizer: SGD, Test Loss: 0.9231, Test Accuracy: 0.7321
-# Optimizer: RMSprop, Test Loss: 0.8907, Test Accuracy: 0.7458
-
-# Model saved to final_cifar10_cnn_model.h5
-# Classification Report:
-#               precision    recall  f1-score   support
-
-#      0       0.81      0.78      0.79       1000
-#      1       0.79      0.84      0.81       1000
-#      2       0.71      0.72      0.71       1000
-#      3       0.55      0.46      0.50       1000
-#      4       0.68      0.68      0.68       1000
-#      5       0.67      0.77      0.72       1000
-#      6       0.81      0.76      0.78       1000
-#      7       0.79      0.84      0.82       1000
-#      8       0.88      0.87      0.87       1000
-#      9       0.72      0.73      0.73       1000
-
-# accuracy                           0.75      10000
-# macro avg       0.75      0.75      0.75      10000
-# weighted avg    0.75      0.75      0.75      10000
 
 # Predicted Label: 3, True Label: 3
