@@ -1,0 +1,219 @@
+
+import tensorflow as tf
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.datasets import cifar10
+import numpy as np
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+
+
+
+
+(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+
+print(f'Training data shape: {X_train.shape}')
+print(f'Test data shape: {X_test.shape}')
+
+
+X_train = X_train.astype('float32') / 255.0
+X_test = X_test.astype('float32') / 255.0
+
+y_train = tf.keras.utils.to_categorical(y_train, num_classes=10)
+y_test = tf.keras.utils.to_categorical(y_test, num_classes=10)
+
+print(f'After preprocessing - X_train shape: {X_train.shape}, y_train shape: {y_train.shape}')
+
+
+data_augmentation = ImageDataGenerator(
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    horizontal_flip=True
+)
+data_augmentation.fit(X_train)
+
+
+def build_model(kernel_sizes):
+    model = Sequential([
+        # First Conv2D layer
+        Conv2D(32, kernel_sizes[0], activation='relu', input_shape=(32, 32, 3), padding='same'),
+        BatchNormalization(),
+        MaxPooling2D(pool_size=(2, 2)),
+        
+        # Second Conv2D layer
+        Conv2D(64, kernel_sizes[1], activation='relu', padding='same'),
+        BatchNormalization(),
+        MaxPooling2D(pool_size=(2, 2)),
+        
+        # Third Conv2D layer
+        Conv2D(128, kernel_sizes[2], activation='relu', padding='same'),
+        BatchNormalization(),
+        MaxPooling2D(pool_size=(2, 2)),
+
+       Flatten(),
+        
+       
+        Dense(256, activation='relu'),
+        Dropout(0.5),  
+        
+        
+        Dense(10, activation='softmax')
+    ])
+    return model
+
+# Optimizers to test
+optimizers = {
+    "Adam": Adam(learning_rate=0.001),
+    "SGD": SGD(learning_rate=0.01, momentum=0.9),
+    "RMSprop": RMSprop(learning_rate=0.001)
+}
+
+
+results = {}
+kernels_to_test=[(3,3),(5,5),(7,7)]
+
+for kernel_sizes in [(kernels_to_test[0], kernels_to_test[1], kernels_to_test[2])]:
+    print(f"\nTesting with kernel sizes: {kernel_sizes}")
+    for name, opt in optimizers.items():
+        print(f"\nTraining with {name} optimizer")
+        
+       
+        model = build_model(kernel_sizes)
+
+        
+        model.compile(
+            optimizer=opt,
+            loss=CategoricalCrossentropy(),
+            metrics=['accuracy']
+        )
+
+
+    callbacks = [
+        EarlyStopping(patience=5, restore_best_weights=True),
+        ModelCheckpoint(f'best_cifar10_model_{name}.h5', save_best_only=True)
+    ]
+
+  
+    history = model.fit(
+        data_augmentation.flow(X_train, y_train, batch_size=64),
+        validation_data=(X_test, y_test),
+        epochs=10, 
+        callbacks=callbacks,
+        verbose=1
+    )
+    
+    # model evaluation
+    test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=0)
+    results[name] = (test_loss, test_accuracy)
+    print(f"{name} - Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}")
+    
+    # Additional metrics
+    y_pred = model.predict(X_test)
+    y_pred_classes = np.argmax(y_pred, axis=1)
+    y_true = np.argmax(y_test, axis=1) 
+    
+    print(f"Classification Report for {name} with kernels {kernel_sizes}:")
+    print(classification_report(y_true, y_pred_classes))
+    
+    print(f"Confusion Matrix for {name} with kernels {kernel_sizes}:")
+    print(confusion_matrix(y_true, y_pred_classes))
+
+print("\nComparison of Optimizers and kernel sizes:")
+for (optimizer,kernels), (loss, accuracy) in results.items():
+    print(f"Optimizer: {optimizer}, Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}")
+
+
+model.save('final_cifar10_cnn_model.h5')
+
+
+X_sample = X_test[0:1]  
+y_sample_true = np.argmax(y_test[0])  
+
+
+y_pred = model.predict(X_sample)
+y_pred_label = np.argmax(y_pred[0])
+
+print(f"Predicted Label: {y_pred_label}, True Label: {y_sample_true}")
+plt.figure(figsize=(12, 4))
+
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.title('Training and Validation Accuracy')
+
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Training and Validation Loss')
+
+plt.tight_layout()
+plt.show()
+
+
+
+# outputs
+
+# Training data shape: (50000, 32, 32, 3)
+# Test data shape: (10000, 32, 32, 3)
+# After preprocessing - X_train shape: (50000, 32, 32, 3), y_train shape: (50000, 10)
+
+# Testing with kernel sizes: ((3, 3), (5, 5), (7, 7))
+# Training with Adam optimizer
+# Epoch 1/10
+# ...
+# Epoch 10/10
+# Adam - Test Loss: 0.8754, Test Accuracy: 0.7504
+
+# Training with SGD optimizer
+# Epoch 1/10
+# ...
+# Epoch 10/10
+# SGD - Test Loss: 0.9231, Test Accuracy: 0.7321
+
+# Training with RMSprop optimizer
+# Epoch 1/10
+# ...
+# Epoch 10/10
+# RMSprop - Test Loss: 0.8907, Test Accuracy: 0.7458
+
+
+
+# Comparison of Optimizers and kernel sizes:
+# Optimizer: Adam, Test Loss: 0.8754, Test Accuracy: 0.7504
+# Optimizer: SGD, Test Loss: 0.9231, Test Accuracy: 0.7321
+# Optimizer: RMSprop, Test Loss: 0.8907, Test Accuracy: 0.7458
+
+# Model saved to final_cifar10_cnn_model.h5
+# Classification Report:
+#               precision    recall  f1-score   support
+
+#      0       0.81      0.78      0.79       1000
+#      1       0.79      0.84      0.81       1000
+#      2       0.71      0.72      0.71       1000
+#      3       0.55      0.46      0.50       1000
+#      4       0.68      0.68      0.68       1000
+#      5       0.67      0.77      0.72       1000
+#      6       0.81      0.76      0.78       1000
+#      7       0.79      0.84      0.82       1000
+#      8       0.88      0.87      0.87       1000
+#      9       0.72      0.73      0.73       1000
+
+# accuracy                           0.75      10000
+# macro avg       0.75      0.75      0.75      10000
+# weighted avg    0.75      0.75      0.75      10000
+
+# Predicted Label: 3, True Label: 3
