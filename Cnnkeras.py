@@ -24,13 +24,13 @@ print(f'After preprocessing - X_train shape: {X_train.shape}, y_train shape: {y_
 
 def build_model(kernel_sizes):
     model = Sequential([
-        Conv2D(32, kernel_sizes[0], activation='relu', input_shape=(32, 32, 3), padding='same'),
+        Conv2D(32, kernel_sizes=(3,3), activation='relu', input_shape=(32, 32, 3), padding='same'),
         BatchNormalization(),
         MaxPooling2D(pool_size=(2, 2)),
-        Conv2D(64, kernel_sizes[1], activation='relu', padding='same'),
+        Conv2D(64, kernel_sizes=(3,3), activation='relu', padding='same'),
         BatchNormalization(),
         MaxPooling2D(pool_size=(2, 2)),
-        Conv2D(128, kernel_sizes[2], activation='relu', padding='same'),
+        Conv2D(128, kernel_sizes=(3,3), activation='relu', padding='same'),
         BatchNormalization(),
         MaxPooling2D(pool_size=(2, 2)),
         Flatten(),
