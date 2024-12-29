@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.datasets import cifar10
@@ -42,8 +42,7 @@ def build_model(kernel_sizes):
 
 optimizers = {
     "Adam": Adam(learning_rate=0.001),
-    "SGD": SGD(learning_rate=0.01, momentum=0.9),
-    "RMSprop": RMSprop(learning_rate=0.001)
+    "SGD": SGD(learning_rate=0.01, momentum=0.9)
 }
 
 results = {}
